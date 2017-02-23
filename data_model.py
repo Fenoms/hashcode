@@ -18,7 +18,8 @@ class Req(object):
         self.reqNum = inReqNum
 
 class Question(object):
-    def __init__(self, vNum, eNum, rNum, cNum, cSize, vSizeList, eList, rList):
+    def __init__(self, vNum, eNum, rNum, cNum, cSize, vSizeList, eList, rList,
+            winMat):
         self.vNum = vNum
         self.eNum = eNum
         self.rNum = rNum
@@ -28,6 +29,8 @@ class Question(object):
         self.vSizeList = vSizeList
         self.eList = eList
         self.rList = rList
+
+        self.winMat = winMat
 
 
 def readFile(filename):
@@ -62,6 +65,7 @@ def readFile(filename):
 
         # Create one end point
         endPntList.append(EndPnt(idx, currPnt[0], desList))
+    endPntNum = len(endPntList)
 
     # Read requests
     reqList = []
@@ -70,8 +74,17 @@ def readFile(filename):
         newReq = Req(currReq[0], currReq[1], currReq[2])
         reqList.append(newReq)
 
+    # Create win matrix
+    winMat = list(list(-1 for i in range(cacheNum)) for j in range(endPntNum))
+    for pntIdx in range(endPntNum):
+        dcLate = endPntList[pntIdx].dcLatency
+        for des in endPntList[pntIdx].endPntDes:
+            cacheLate = des.cacheLatency
+            if dcLate >= cacheLate:
+                winMat[pntIdx][des.cacheId] = dcLate - cacheLate
+
     # Create question
     question = Question(len(sizes), endPntNum, reqNum, cacheNum, cacheSize,
-            sizes, endPntList, reqList)
+            sizes, endPntList, reqList, winMat)
 
     return question
